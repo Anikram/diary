@@ -22,8 +22,24 @@ class Task < Post
   def to_strings
     time_string = "Созданно в #{@created_at.strftime("%Y.%m.%d, %H:%M:%S")} \n\r \n\r"
 
-    deadline = "Крайний срок: " + @due_date
+    deadline = "Крайний срок: #{@due_date}"
 
     return [deadline, @text, time_string]
+  end
+
+  def to_db_hash
+    return super.merge(
+        {
+            'text' => @text,
+            'due_date' => @due_date.to_s
+        }
+    )
+  end
+
+  def load_data(data_hash) # переписываем при помощи полиморфизма - метод экземпляра класса post
+    super(data_hash) # обращаемся к родительскому исполнению метода
+    #а затем вносим дополнения
+    @due_date = Date.parse(data_hash["due_date"])
+
   end
 end
