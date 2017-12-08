@@ -10,37 +10,43 @@ class Post
     {'Memo' => Memo, 'Link' => Link, 'Task' => Task}
   end
 
-  def self.find(limit, type, id) #пишем метод для поиска записей в базе данных
-    db = SQLite3::Database.open(@@SQLITE_DB_FILE) #открываем базу данных
+  def self.find_id(id)
+      db = SQLite3::Database.open(@@SQLITE_DB_FILE) #открываем базу данных
 
-    #puts type
-    #puts limit
-    #puts id
 
-    if !id.nil? # если пользователь указал id записи (id не равно nil), то нужно вывести
-      # 1. запись №
+    db.results_as_hash = true # не совсем понял что это за метод, но видимо встроенный для BD
 
-      db.results_as_hash = true # не совсем понял что это за метод, но видимо встроенный для BD
+    begin
+    result = db.execute("SELECT * FROM posts WHERE rowid=?", id) # занести в переменную result текст запроса в базу данных для поиска по id
+    rescue SQLite3::SQLException => e
+      abort "База данных не найдена. Error: #{e}"
+    end
 
-      result = db.execute("SELECT * FROM posts WHERE rowid=?", id) # занести в переменную result текст запроса в базу данных для поиска по id
 
-      result = result[0] if result.is_a? Array # защита на случай, если result- не массив
+    result = result[0] if result.is_a? Array # защита на случай, если result- не массив
 
-      db.close # база данных уже не нужна - ее можно закрыть
+    db.close # база данных уже не нужна - ее можно закрыть
 
-      if result.empty? # проверка результата поиска
-        #если рузльтат не найден
-        puts "Записи под номером #id = #{id} не найдено."
-        return nil
-      else
-        #если результат найден
-        post = create(result['type'])
-
-        post.load_data(result) #to do
-
-        return post
-      end
+    if result.empty? # проверка результата поиска
+      #если рузльтат не найден
+      puts "Записи под номером #id = #{id} не найдено."
+      return nil
     else
+      #если результат найден
+      post = create(result['type'])
+
+      post.load_data(result) #to do
+
+      return post
+    end
+  end
+
+
+
+  def self.find(limit, type) #пишем метод для поиска записей в базе данных
+
+      db = SQLite3::Database.open(@@SQLITE_DB_FILE) #открываем базу данных
+
       # 2. вернуть таблицу
 
       db.results_as_hash = false
@@ -73,7 +79,6 @@ class Post
       db.close
 
       return result
-    end
   end
 
   def self.create(type)
@@ -114,8 +119,9 @@ class Post
 
   def save_to_db
     db = SQLite3::Database.open(@@SQLITE_DB_FILE)
-    db.results_as_hash = true
 
+    db.results_as_hash = true
+begin
     db.execute(
         "INSERT INTO posts("+
             to_db_hash.keys.join(',') +
@@ -129,7 +135,9 @@ class Post
     insert_row_id = db.last_insert_row_id
     db.close
     return insert_row_id
-
+rescue SQLite3::SQLException => e
+  abort "Ошибка отрытия базы данных. Error(#{e})"
+end
 
   end
 

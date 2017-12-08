@@ -24,7 +24,12 @@ OptionParser.new do |opt|  # создание парсера для обрабо
   opt.on('--limit NUMBER', 'Ограничить количество выводимых постов (по умолчанию - вывести все)') {|o| options[:limit] =o}
 end.parse!
 
-result = Post.find(options[:limit], options[:type], options[:id])
+if !options[:id]
+  result = Post.find(options[:limit], options[:type])
+else
+result = Post.find_id(options[:id])
+
+end
 
 if result.is_a? Post
   puts "Запись #{result.class.name}, ID = #{options[:id]}"
