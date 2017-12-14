@@ -8,7 +8,7 @@ class Post
   @@SQLITE_DB_FILE = 'diary.sqlite'
 
   def self.post_types
-    {'Memo' => Memo, 'Link' => Link, 'Task' => Task}
+    {'Memo' => Memo, 'Link' => Link, 'Task' => Task, 'Tweet' => Tweet}
   end
 
   def self.find_id(id)
